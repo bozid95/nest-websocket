@@ -19,23 +19,21 @@ export class AuthService {
   // Fungsi untuk membuat hash password
   private saltRounds: number = 10;
 
-  // Hash password dengan bcrypt
   private async hashPassword(password: string): Promise<string> {
-    const salt = await bcrypt.genSalt(this.saltRounds); // Menambahkan saltRounds
+    const salt = await bcrypt.genSalt(this.saltRounds);
     return bcrypt.hash(password, salt);
   }
 
   // Fungsi untuk membuat JWT
   private generateJwt(user: any) {
-    const payload = { username: user.username, sub: user.id }; // Payload yang bisa Anda sesuaikan
-    return this.jwtService.sign(payload); // Menggunakan JwtService untuk menghasilkan token
+    const payload = { username: user.username, sub: user.id };
+    return this.jwtService.sign(payload);
   }
 
   // Fungsi untuk register
   async register(registerDto: RegisterDto) {
     const { username, password, gender } = registerDto;
 
-    // Memastikan bahwa username belum digunakan
     const existingUser = await this.prisma.user.findUnique({
       where: { username },
     });
@@ -56,7 +54,6 @@ export class AuthService {
       },
     });
 
-    // Generate and return JWT after user registration
     return this.generateJwt(user);
   }
 
@@ -73,7 +70,6 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // Compare password with the hashed one in the database
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');

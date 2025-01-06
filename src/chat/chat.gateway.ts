@@ -17,7 +17,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   async handleConnection(client: Socket) {
     console.log(`Client connected: ${client.id}`);
-    // Anda bisa memvalidasi token di sini, lalu menghubungkan pengguna
   }
 
   async handleDisconnect(client: Socket) {
@@ -49,7 +48,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         content,
       );
 
-      // Broadcast pesan ke semua pengguna di room
       this.server.to(chatRoomId).emit('newMessage', message);
     } catch (error) {
       console.error(`Error sending message to room: ${chatRoomId}`, error);
