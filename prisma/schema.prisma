@@ -1,0 +1,89 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id              String          @id @default(uuid())
+  username        String          @unique
+  password        String
+  gender          Gender // Jenis kelamin pengguna
+  preferredGender Gender? // Preferensi pasangan chat
+  isConnected     Boolean         @default(false) // Status koneksi pengguna
+  chatRooms       ChatRoom[]      @relation("UserChatRooms")
+  friendRequests  FriendRequest[] @relation("RequestsToUser")
+  sentRequests    FriendRequest[] @relation("RequestsFromUser")
+  friends         Friendship[]    @relation("UserFriendships")
+  blockedUsers    Block[]         @relation("BlockedByUser")
+  blockingUsers   Block[]         @relation("UserIsBlocked")
+  createdAt       DateTime        @default(now())
+
+  // Relasi balik ke Friendship
+  friendshipsUser1 Friendship[] @relation("FriendshipUser1")
+  friendshipsUser2 Friendship[] @relation("FriendshipUser2")
+  messages         Message[]    @relation("UserMessages")
+}
+
+model Friendship {
+  id        String   @id @default(uuid())
+  user1Id   String
+  user1     User     @relation("FriendshipUser1", fields: [user1Id], references: [id])
+  user2Id   String
+  user2     User     @relation("FriendshipUser2", fields: [user2Id], references: [id])
+  createdAt DateTime @default(now())
+
+  User User[] @relation("UserFriendships")
+}
+
+model ChatRoom {
+  id        String    @id @default(uuid())
+  users     User[]    @relation("UserChatRooms")
+  messages  Message[]
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+}
+
+model Message {
+  id         String   @id @default(uuid())
+  content    String // Isi pesan
+  createdAt  DateTime @default(now())
+  userId     String
+  user       User     @relation("UserMessages", fields: [userId], references: [id])
+  chatRoomId String
+  chatRoom   ChatRoom @relation(fields: [chatRoomId], references: [id])
+}
+
+model FriendRequest {
+  id         String        @id @default(uuid())
+  fromUserId String
+  fromUser   User          @relation("RequestsFromUser", fields: [fromUserId], references: [id])
+  toUserId   String
+  toUser     User          @relation("RequestsToUser", fields: [toUserId], references: [id])
+  status     RequestStatus @default(PENDING)
+  createdAt  DateTime      @default(now())
+}
+
+model Block {
+  id        String   @id @default(uuid())
+  blockerId String
+  blocker   User     @relation("BlockedByUser", fields: [blockerId], references: [id])
+  blockedId String
+  blocked   User     @relation("UserIsBlocked", fields: [blockedId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum RequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
